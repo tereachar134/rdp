@@ -4,19 +4,16 @@ on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Enable TS
-        run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-      - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-      - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
-      - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-      - name: Start Serveo tunnel
-        id: serveo
         run: |
-          ssh -R 80:localhost:3389 serveo.net > serveo_output.txt &
-          sleep 10 # Wait for Serveo to establish the tunnel
-          serveo_url=$(curl -sS http://serveo.net/api/inspect | jq -r .public_url)
-          echo "::set-output name=serveo_url::$serveo_url"
-      - name: Get Serveo URL
-        run: echo "Serveo URL: ${{ steps.serveo.outputs.serveo_url }}"
+          sudo systemctl start xrdp
+          sudo systemctl enable xrdp
+      - name: Install SSH Client
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
+      - name: Start Localhost.run tunnel
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh -o "StrictHostKeyChecking no" -R 80:localhost:3389 -S $SSH_AUTH_SOCK -O forward ssh.localhost.run -N
