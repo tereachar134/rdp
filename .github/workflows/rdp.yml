@@ -1,4 +1,4 @@
-name: Cl
+name: Create Pinggy Tunnel
 
 on: [push, workflow_dispatch]
 
@@ -13,4 +13,6 @@ jobs:
     - name: Run Local Service
       run: python3 -m http.server
     - name: Create Tunnel
-      run: .\pinggy.exe tunnel 8000
+      run: .\pinggy.exe tunnel 8000 --auth-token ${{ secrets.pinggy_auth_token }}
+      env:
+        PINGGY_AUTH_TOKEN: ${{ secrets.pinggy_auth_token }}
