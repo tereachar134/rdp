@@ -12,23 +12,26 @@ jobs:
       run: Invoke-WebRequest https://s3.ap-south-1.amazonaws.com/public.pinggy.binaries/v0.1.0-beta.1/windows/arm64/pinggy.exe -OutFile pinggy.exe
 
     - name: Start Local Service
-      run: python3 -m http.server 8000 &
-      # The "&" at the end makes the command run in the background, allowing the workflow to proceed.
+      run: python3 -m http.server 8000
+      # This command should start the local service without the "&" at the end.
 
     - name: Wait for Local Service to Start
       run: |
-        n=0
-        until [ $n -ge 5 ]; do
-          curl -s http://localhost:8000 && break
-          n=$((n+1))
-          sleep 5
-        done
-        if [ $n -ge 5 ]; then
-          echo "Local service did not start within the timeout period."
+        $n = 0
+        while ($n -lt 5) {
+          $response = Invoke-WebRequest http://localhost:8000 -UseBasicParsing
+          if ($response.StatusCode -eq 200) {
+            break
+          }
+          Start-Sleep -Seconds 5
+          $n++
+        }
+        if ($n -ge 5) {
+          Write-Error "Local service did not start within the timeout period."
           exit 1
-        fi
+        }
 
     - name: Create Tunnel
-      run: .\pinggy.exe tunnel 8000 --auth-token ${{ secrets.pinggy_auth_token }}
+      run: .\pinggy.exe tunnel 8000 --auth-token $env:PINGGY_AUTH_TOKEN
       env:
         PINGGY_AUTH_TOKEN: ${{ secrets.pinggy_auth_token }}
