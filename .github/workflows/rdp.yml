@@ -12,4 +12,11 @@ jobs:
       - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
       - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
       - name: Start Serveo tunnel
-        run: ssh -R 80:localhost:3389 serveo.net
+        id: serveo
+        run: |
+          ssh -R 80:localhost:3389 serveo.net > serveo_output.txt &
+          sleep 10 # Wait for Serveo to establish the tunnel
+          serveo_url=$(curl -sS http://serveo.net/api/inspect | jq -r .public_url)
+          echo "::set-output name=serveo_url::$serveo_url"
+      - name: Get Serveo URL
+        run: echo "Serveo URL: ${{ steps.serveo.outputs.serveo_url }}"
