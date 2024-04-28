@@ -14,4 +14,4 @@ jobs:
           Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
       - name: Create Tunnel
         run: |
-          ssh -R 80:localhost:3389 ssh.localhost.run
+          ssh -t -R 80:localhost:3389 ssh.localhost.run
