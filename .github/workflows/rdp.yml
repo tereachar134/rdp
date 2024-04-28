@@ -4,16 +4,15 @@ on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Enable TS
         run: |
-          sudo systemctl start xrdp
-          sudo systemctl enable xrdp
-      - name: Install SSH Client
-        run: sudo apt-get update && sudo apt-get install -y openssh-client
-      - name: Start Localhost.run tunnel
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-          ssh -o "StrictHostKeyChecking no" -R 80:localhost:3389 -S $SSH_AUTH_SOCK -O forward ssh.localhost.run -N
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+          Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
+      - name: Download Localhost.run CLI
+        run: Invoke-WebRequest https://localhost.run/localtunnel/windows-amd64/localhost.run.exe -OutFile localhost.run.exe
+      - name: Create Tunnel
+        run: .\localhost.run.exe tcp 3389
