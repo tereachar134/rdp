@@ -1,17 +1,16 @@
-name: CI
+name: Cl
 
 on: [push, workflow_dispatch]
 
 jobs:
   build:
+
     runs-on: windows-latest
+
     steps:
-      - name: Enable TS
-        run: |
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
-          Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-      - name: Create Tunnel
-        run: |
-          ssh -t -R 80:localhost:3389 ssh.localhost.run
+    - name: Download Pinggy CLI
+      run: Invoke-WebRequest https://s3.ap-south-1.amazonaws.com/public.pinggy.binaries/v0.1.0-beta.1/windows/arm64/pinggy.exe -OutFile pinggy.exe
+    - name: Run Local Service
+      run: python3 -m http.server
+    - name: Create Tunnel
+      run: .\pinggy.exe tunnel 8000
