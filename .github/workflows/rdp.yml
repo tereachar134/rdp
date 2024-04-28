@@ -12,10 +12,6 @@ jobs:
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
           Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-      - name: Download Localhost.run CLI
-        run: |
-          $url = "https://github.com/localhost-run/localhost.run/releases/latest/download/localhost.run.exe"
-          Invoke-WebRequest $url -OutFile localhost.run.exe
       - name: Create Tunnel
-        run: .\localhost.run.exe tcp 3389
-
+        run: |
+          ssh -R 80:localhost:3389 ssh.localhost.run
