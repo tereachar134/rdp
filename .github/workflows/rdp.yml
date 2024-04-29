@@ -7,15 +7,20 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Install LocalXpose
+    - name: Install Chocolatey
       run: |
-        choco install localxpose -y
+        Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+    - name: Install LocalXpose
+      run: choco install localxpose -y
+    - name: Add Chocolatey to PATH
+      run: |
+        [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';C:\ProgramData\chocolatey\bin', [System.EnvironmentVariableTarget]::Machine)
     - name: Auth LocalXpose
-      run: loclx tunnel login ${{ secrets.LOCLX_API_TOKEN }}
+      run: C:\ProgramData\chocolatey\bin\loclx.exe tunnel login ${{ secrets.LOCLX_API_TOKEN }}
     - name: Enable TS
       run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
     - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
     - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
     - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
     - name: Create Tunnel
-      run: loclx tunnel create --type tcp --region us --to localhost:3389
+      run: C:\ProgramData\chocolatey\bin\loclx.exe tunnel create --type tcp --region us --to localhost:3389
