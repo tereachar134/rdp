@@ -9,11 +9,11 @@ jobs:
     steps:
     - name: Download LocalXpose
       run: |
-        $response = Invoke-WebRequest -Uri "https://api.localxpose.io/api/downloads/loclx-windows-amd64.zip" -OutFile "loclx.zip" -PassThru
-        $fileName = $response.ResponseUri.Segments[-1]
-        Write-Output "File name: $fileName"
+        $downloadUrl = "https://api.localxpose.io/api/downloads/loclx-windows-amd64.zip"
+        $fileName = [System.IO.Path]::GetFileName($downloadUrl)
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $fileName
     - name: Extract LocalXpose
-      run: Expand-Archive -Path "loclx.zip" -DestinationPath "loclx"
+      run: Expand-Archive -Path $fileName -DestinationPath "loclx"
     - name: Add LocalXpose to PATH
       run: |
         [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';' + $PWD + '\loclx', [System.EnvironmentVariableTarget]::Machine)
