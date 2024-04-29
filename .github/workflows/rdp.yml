@@ -21,12 +21,21 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y xrdp
     - name: Enable XRDP
       run: sudo systemctl enable --now xrdp
+    - name: Check XRDP Status
+      run: sudo systemctl status xrdp
+    - name: Check XRDP Logs
+      run: |
+        sudo tail -n 50 /var/log/xrdp.log
+        sudo tail -n 50 /var/log/xrdp-sesman.log
     - name: Create user
       run: |
-        sudo useradd -m -s /bin/bash runneradmin
-        echo "runneradmin:P@ssw0rd!" | sudo chpasswd
-    - name: Allow passwordless sudo for user
+        if id "runneradmin" &>/dev/null; then
+          echo "User already exists"
+        else
+          sudo useradd -m -s /bin/bash -p $(openssl passwd -1 "P@ssw0rd!") runneradmin
+        fi
+    - name: Set XRDP Password
       run: |
-        echo "runneradmin ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers
+        echo "runneradmin:P@ssw0rd!" | sudo chpasswd
     - name: Create Tunnel
       run: ./ngrok tcp 3389
