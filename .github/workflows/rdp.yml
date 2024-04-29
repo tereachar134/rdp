@@ -21,7 +21,13 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y xrdp
     - name: Enable XRDP
       run: sudo systemctl enable --now xrdp
-    - name: Check if user exists
+    - name: Check XRDP Status
+      run: sudo systemctl status xrdp
+    - name: Check XRDP Logs
+      run: |
+        sudo tail -n 50 /var/log/xrdp.log
+        sudo tail -n 50 /var/log/xrdp-sesman.log
+    - name: Create user
       run: |
         if id "runneradmin" &>/dev/null; then
           echo "User already exists"
