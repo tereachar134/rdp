@@ -10,10 +10,9 @@ jobs:
     - name: Download LocalXpose
       run: |
         $downloadUrl = "https://api.localxpose.io/api/downloads/loclx-windows-amd64.zip"
-        $fileName = [System.IO.Path]::GetFileName($downloadUrl)
-        Invoke-WebRequest -Uri $downloadUrl -OutFile $fileName
+        Invoke-WebRequest -Uri $downloadUrl -OutFile "loclx.zip"
     - name: Extract LocalXpose
-      run: Expand-Archive -Path $fileName -DestinationPath "loclx"
+      run: Expand-Archive -Path "loclx.zip" -DestinationPath "loclx"
     - name: Add LocalXpose to PATH
       run: |
         [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';' + $PWD + '\loclx', [System.EnvironmentVariableTarget]::Machine)
