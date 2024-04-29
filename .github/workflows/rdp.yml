@@ -18,7 +18,9 @@ jobs:
       env:
         NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
     - name: Install XRDP and Xfce desktop environment
-      run: sudo apt-get update && sudo apt-get install -y xrdp xfce4
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xrdp xfce4 xfce4-goodies xfconf
     - name: Enable XRDP
       run: sudo systemctl enable --now xrdp
     - name: Configure XRDP to use Xfce
