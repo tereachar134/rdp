@@ -4,19 +4,19 @@ on: [push, workflow_dispatch]
 
 jobs:
   build:
-
     runs-on: windows-latest
-
-    env:
-      LOCALXPOSE_API_KEY: ${{ secrets.LOCALXPOSE_API_KEY }}
 
     steps:
     - name: Download LocalXpose
-      run: Invoke-WebRequest https://localxpose.io/download/windows/latest -OutFile localxpose.exe
+      run: Invoke-WebRequest https://github.com/LocalXpose/loclx/releases/latest/download/loclx-windows-amd64.zip -OutFile loclx.zip
+    - name: Extract LocalXpose
+      run: Expand-Archive loclx.zip
+    - name: Auth LocalXpose
+      run: .\loclx.exe tunnel login ${{ secrets.LOCLX_API_TOKEN }}
     - name: Enable TS
       run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
     - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
     - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
     - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
     - name: Create Tunnel
-      run: .\localxpose.exe tcp 3389 --api-key $Env:LOCALXPOSE_API_KEY
+      run: .\loclx.exe tunnel create --type tcp --region us --to localhost:3389
