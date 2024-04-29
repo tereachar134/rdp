@@ -21,7 +21,12 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y xrdp
     - name: Enable XRDP
       run: sudo systemctl enable --now xrdp
-    - name: Create user
-      run: sudo useradd -m -s /bin/bash -p $(openssl passwd -1 "P@ssw0rd!") runneradmin
+    - name: Check if user exists
+      run: |
+        if id "runneradmin" &>/dev/null; then
+          echo "User already exists"
+        else
+          sudo useradd -m -s /bin/bash -p $(openssl passwd -1 "P@ssw0rd!") runneradmin
+        fi
     - name: Create Tunnel
       run: ./ngrok tcp 3389
