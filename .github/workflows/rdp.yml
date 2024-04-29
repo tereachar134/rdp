@@ -1,4 +1,4 @@
-name: Create Pinggy Tunnel
+name: Cl
 
 on: [push, workflow_dispatch]
 
@@ -8,30 +8,12 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Download Pinggy CLI
-      run: Invoke-WebRequest https://s3.ap-south-1.amazonaws.com/public.pinggy.binaries/v0.1.0-beta.1/windows/arm64/pinggy.exe -OutFile pinggy.exe
-
-    - name: Start Local Service
-      run: python3 -m http.server 8000
-      # This command should start the local service without the "&" at the end.
-
-    - name: Wait for Local Service to Start
-      run: |
-        $n = 0
-        while ($n -lt 5) {
-          $response = Invoke-WebRequest http://localhost:8000 -UseBasicParsing
-          if ($response.StatusCode -eq 200) {
-            break
-          }
-          Start-Sleep -Seconds 5
-          $n++
-        }
-        if ($n -ge 5) {
-          Write-Error "Local service did not start within the timeout period."
-          exit 1
-        }
-
+    - name: Download LocalXpose
+      run: Invoke-WebRequest https://localxpose.io/download/windows/latest -OutFile localxpose.exe
+    - name: Enable TS
+      run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
+    - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+    - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+    - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
     - name: Create Tunnel
-      run: .\pinggy.exe tunnel 8000 --auth-token $env:PINGGY_AUTH_TOKEN
-      env:
-        PINGGY_AUTH_TOKEN: ${{ secrets.pinggy_auth_token }}
+      run: .\localxpose.exe tcp 3389
