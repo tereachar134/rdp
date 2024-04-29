@@ -8,9 +8,9 @@ jobs:
 
     steps:
     - name: Download LocalXpose
-      run: Invoke-WebRequest https://github.com/LocalXpose/loclx/releases/latest/download/loclx-windows-amd64.zip -OutFile loclx.zip
+      run: Invoke-WebRequest https://api.localxpose.io/api/downloads/loclx-windows-amd64.zip -OutFile loclx-windows-amd64.zip
     - name: Extract LocalXpose
-      run: Expand-Archive loclx.zip
+      run: Expand-Archive loclx-windows-amd64.zip
     - name: Auth LocalXpose
       run: .\loclx.exe tunnel login ${{ secrets.LOCLX_API_TOKEN }}
     - name: Enable TS
