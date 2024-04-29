@@ -7,15 +7,8 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Fetch latest LocalXpose release
-      id: loclx_release
-      run: |
-        $release_url = "https://localxpose.io/downloads"
-        $response = Invoke-WebRequest -Uri $release_url
-        $download_url = $response.Links | Where-Object { $_.href -like "*loclx-windows-amd64.zip*" } | Select-Object -First 1 -ExpandProperty "href"
-        Write-Output "::set-output name=download_url::$download_url"
     - name: Download LocalXpose
-      run: Invoke-WebRequest ${{ steps.loclx_release.outputs.download_url }} -OutFile loclx.zip
+      run: Invoke-WebRequest https://api.localxpose.io/api/downloads/loclx-windows-amd64.zip -OutFile loclx.zip
     - name: Extract LocalXpose
       run: Expand-Archive loclx.zip
     - name: Add LocalXpose to PATH
