@@ -1,34 +1,29 @@
-name: Remote Desktop
+name: Ubuntu Tunnel
 
 on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Get Host Info
-      id: host_info
+    - name: Install Dependencies
       run: |
-        $hostname = $env:COMPUTERNAME
-        $ip_address = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.InterfaceAlias -notlike "*vEthernet*"}).IPAddress
-        Write-Output "::set-output name=hostname::$hostname"
-        Write-Output "::set-output name=ip_address::$ip_address"
-    - name: Enable TS
-      run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
-    - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-    - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
-    - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-    - name: Connect to Remote Desktop
+        sudo apt-get update
+        sudo apt-get install -y ngrok
+
+    - name: Auth
+      run: ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+      env:
+        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+
+    - name: Enable VNC Server
       run: |
-        $rdpFile = "remote-desktop.rdp"
-        Set-Content -Path $rdpFile -Value @"
-        full address:s:${{ steps.host_info.outputs.ip_address }}:3389
-        username:s:runneradmin
-        password:s:P@ssw0rd!
-        "@
-        mstsc.exe /v:${{ steps.host_info.outputs.ip_address }} /f /admin /cert:ignore /f $rdpFile
-    - name: Display Host Information
-      run: |
-        Write-Output "Hostname: ${{ steps.host_info.outputs.hostname }}"
-        Write-Output "IP Address: ${{ steps.host_info.outputs.ip_address }}"
+        sudo apt-get install -y tightvncserver
+        tightvncserver :1
+
+    - name: Create Tunnel
+      run: ngrok tcp 5901 &
+
+    - name: Keep Alive
+      run: while true; do sleep 30; done
