@@ -7,6 +7,9 @@ jobs:
 
     runs-on: windows-latest
 
+    env:
+      LOCALXPOSE_API_KEY: ${{ secrets.LOCALXPOSE_API_KEY }}
+
     steps:
     - name: Download LocalXpose
       run: Invoke-WebRequest https://localxpose.io/download/windows/latest -OutFile localxpose.exe
@@ -16,4 +19,4 @@ jobs:
     - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
     - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
     - name: Create Tunnel
-      run: .\localxpose.exe tcp 3389
+      run: .\localxpose.exe tcp 3389 --api-key $Env:LOCALXPOSE_API_KEY
