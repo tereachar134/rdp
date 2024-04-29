@@ -1,4 +1,4 @@
-name: Cl
+name: Remote Desktop
 
 on: [push, workflow_dispatch]
 
@@ -7,17 +7,28 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Install Chocolatey
+    - name: Get Host Info
+      id: host_info
       run: |
-        Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-    - name: Install LocalXpose
-      run: choco install loclx -y
-    - name: Auth LocalXpose
-      run: loclx.exe tunnel login ${{ secrets.LOCLX_API_TOKEN }}
+        $hostname = $env:COMPUTERNAME
+        $ip_address = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.InterfaceAlias -notlike "*vEthernet*"}).IPAddress
+        Write-Output "::set-output name=hostname::$hostname"
+        Write-Output "::set-output name=ip_address::$ip_address"
     - name: Enable TS
       run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
     - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
     - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
     - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-    - name: Create Tunnel
-      run: loclx.exe tunnel create --type tcp --region us --to localhost:3389
+    - name: Connect to Remote Desktop
+      run: |
+        $rdpFile = "remote-desktop.rdp"
+        Set-Content -Path $rdpFile -Value @"
+        full address:s:${{ steps.host_info.outputs.ip_address }}:3389
+        username:s:runneradmin
+        password:s:P@ssw0rd!
+        "@
+        mstsc.exe /v:${{ steps.host_info.outputs.ip_address }} /f /admin /cert:ignore /f $rdpFile
+    - name: Display Host Information
+      run: |
+        Write-Output "Hostname: ${{ steps.host_info.outputs.hostname }}"
+        Write-Output "IP Address: ${{ steps.host_info.outputs.ip_address }}"
