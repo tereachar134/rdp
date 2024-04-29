@@ -7,16 +7,15 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Download LocalXpose
-      run: Invoke-WebRequest https://api.localxpose.io/api/downloads/loclx-windows-amd64.zip -OutFile loclx-windows-amd64.zip
-    - name: Extract LocalXpose
-      run: Expand-Archive loclx-windows-amd64.zip
+    - name: Install LocalXpose
+      run: |
+        choco install localxpose -y
     - name: Auth LocalXpose
-      run: .\loclx.exe tunnel login ${{ secrets.LOCLX_API_TOKEN }}
+      run: loclx tunnel login ${{ secrets.LOCLX_API_TOKEN }}
     - name: Enable TS
       run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
     - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
     - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
     - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
     - name: Create Tunnel
-      run: .\loclx.exe tunnel create --type tcp --region us --to localhost:3389
+      run: loclx tunnel create --type tcp --region us --to localhost:3389
