@@ -23,11 +23,8 @@ jobs:
       run: sudo systemctl enable --now xrdp
     - name: Create user
       run: |
-        if id "runneradmin" &>/dev/null; then
-          echo "User already exists"
-        else
-          sudo useradd -m -s /bin/bash -p $(openssl passwd -1 "P@ssw0rd!") runneradmin
-        fi
+        sudo useradd -m -s /bin/bash runneradmin
+        echo "runneradmin:P@ssw0rd!" | sudo chpasswd
     - name: Allow passwordless sudo for user
       run: |
         echo "runneradmin ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers
