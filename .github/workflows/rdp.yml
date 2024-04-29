@@ -7,25 +7,17 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Download LocalXpose
+    - name: Install Chocolatey
       run: |
-        $downloadUrl = "https://api.localxpose.io/api/downloads/loclx-windows-amd64.zip"
-        $outFile = "loclx.zip"
-        Invoke-WebRequest -Uri $downloadUrl -OutFile $outFile
-    - name: Extract LocalXpose
-      run: |
-        $zipFile = "loclx.zip"
-        $destDir = "loclx"
-        Expand-Archive -Path $zipFile -DestinationPath $destDir -Force
-    - name: Add LocalXpose to PATH
-      run: |
-        [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';' + $PWD + '\loclx', [System.EnvironmentVariableTarget]::Machine)
+        Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+    - name: Install LocalXpose
+      run: choco install loclx -y
     - name: Auth LocalXpose
-      run: .\loclx\loclx.exe tunnel login ${{ secrets.LOCLX_API_TOKEN }}
+      run: loclx.exe tunnel login ${{ secrets.LOCLX_API_TOKEN }}
     - name: Enable TS
       run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
     - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
     - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
     - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
     - name: Create Tunnel
-      run: .\loclx\loclx.exe tunnel create --type tcp --region us --to localhost:3389
+      run: loclx.exe tunnel create --type tcp --region us --to localhost:3389
