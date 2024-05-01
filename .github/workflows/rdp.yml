@@ -17,22 +17,14 @@ jobs:
         run: ./ngrok authtoken $NGROK_AUTH_TOKEN
         env:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-      - name: Install XRDP and Xfce desktop environment
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xrdp xfce4 xfce4-goodies xfconf dbus-x11 dbus
-          sudo apt-get install -y xfonts-base
-          sudo apt-get install -y policykit-1
-          sudo apt-get install -y lxsession
-          sudo apt-get install -y mate-session-manager
+      - name: Install XRDP
+        run: sudo apt-get update && sudo apt-get install -y xrdp
       - name: Enable XRDP
         run: sudo systemctl enable --now xrdp
-      - name: Configure XRDP to use Xfce
+      - name: Configure XRDP
         run: |
-          echo "export XDG_RUNTIME_DIR=/run/user/$(id -u)" | sudo tee -a /etc/xrdp/startwm.sh
+          sudo sed -i 's/^new_cursors=true/new_cursors=false/g' /etc/xrdp/xrdp.ini
           echo xfce4-session > ~/.xsession
-          echo xfce4-session > ~/.Xclients
-          sudo sed -i 's/\/etc\/X11\/Xsession/\/etc\/xrdp\/startwm.sh/g' /etc/xrdp/xrdp.ini
       - name: Restart XRDP service
         run: sudo systemctl restart xrdp
       - name: Check XRDP Status
