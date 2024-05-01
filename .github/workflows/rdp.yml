@@ -20,13 +20,15 @@ jobs:
       - name: Install XRDP and Xfce desktop environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y xrdp xfce4 xfce4-goodies xfconf
+          sudo apt-get install -y xrdp xfce4 xfce4-goodies xfconf dbus-x11
+          sudo apt-get install -y dbus
       - name: Enable XRDP
         run: sudo systemctl enable --now xrdp
       - name: Configure XRDP to use Xfce
         run: |
           echo xfce4-session > ~/.xsession
-          echo "xfce4-session" | sudo tee /etc/skel/.xsession
+          echo "xfce4-session" | sudo tee /etc/xrdp/startwm.sh
+          sudo chmod +x /etc/xrdp/startwm.sh
       - name: Restart XRDP service
         run: sudo systemctl restart xrdp
       - name: Check XRDP Status
